@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{{u}}</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/static/a/favicon.ico" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.4.2/Control.FullScreen.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.62.0/L.Control.Locate.min.css">
+    <link rel="stylesheet" href="/fuels/m.min.css">
+    <style>
+      html *{
+          box-sizing:border-box;
+      }
+      .container {
+          padding: 10px 15px 20px 15px;
+          margin-right: auto;
+          margin-left: auto;
+      }
+      .leaflet-container-default {
+          min-height: 600px;
+      }
+      .map{
+          height: 600px;
+      }
+      .map-loading:after{
+          content: "Loading...";    
+          display: inline-block;
+          width: 100%;    
+          height: 597px;
+          line-height: 597px;
+          font-size: 25px;
+          font-weight: bold;
+          text-align: center;
+          color: #FFF;
+          position: absolute;
+      }
+      .map.radar{
+          height: 700px;   
+      }
+      .map.sirena{
+          width: 816px;
+          height: 597px;   
+      }
+      #map-wrapper{
+          width: 1170px;
+          height: 597px;  
+          background-color: #bae568;
+          position: relative;
+      }
+      #map-wrapper .map{
+          float:left;
+      }
+      #map-wrapper .sidecontrol{
+          float: right;
+          color: #444;
+          width: 250px;
+          padding: 20px 20px;
+          margin-right: 30px;
+          margin-top: 30px;
+          background-color: #80bf43;
+          background-color: rgba(128, 191, 67, 0.49);    
+      }
+      #map-wrapper .sidecontrol span.title a{
+          display: block;
+          font-size: 12px;
+          color: #444;
+          font-family: Georgia, serif;
+          font-weight: bold;
+          text-decoration: none;
+          text-transform: uppercase;
+          margin: auto;
+          text-align: center;
+      }
+      #map-wrapper .sidecontrol span.date{
+          display: block;
+          font-size: 40px;
+          color: #EEE;
+          font-family: Georgia, serif;    
+          margin: auto;
+          text-align: center;
+          border-bottom: 1px solid #EEE;
+      }
+      #map-wrapper .sidecontrol span.time{
+          display: block;
+          font-size: 80px;
+          color: #EEE;
+          font-family: Georgia, serif;
+          font-weight: bold;
+          margin: auto;
+          text-align: center;
+          margin-top: -10px;
+      }
+      #map-wrapper .sidecontrol .button-wrapper{
+          margin: auto;
+          text-align: center;    
+      }
+      .btn {
+          -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+          -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+          box-shadow:inset 0px 1px 0px 0px #ffffff;
+          background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ffffff), color-stop(1, #f6f6f6));
+          background:-moz-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+          background:-webkit-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+          background:-o-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+          background:-ms-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+          background:linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);    
+          background-color:#ffffff;
+          -moz-border-radius:6px;
+          -webkit-border-radius:6px;
+          border-radius:6px;
+          border:1px solid #dcdcdc;
+          display:inline-block;
+          cursor:pointer;
+          color:#666666;
+          font-family:Arial;
+          font-size:15px;    
+          font-weight:bold;
+          padding: 6px 10px;
+          text-decoration:none;
+          text-shadow:0px 1px 0px #ffffff;
+      }
+      .btn:hover {
+          background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f6f6f6), color-stop(1, #ffffff));
+          background:-moz-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+          background:-webkit-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+          background:-o-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+          background:-ms-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+          background:linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);    
+          background-color:#f6f6f6;
+      }
+      .btn:active {
+          position:relative;
+          top:1px;
+      }
+      .btn-play:before {
+        font-family: "Glyphicons Halflings";
+        content: "\e072";
+        padding-right: 5px;
+      }
+      .btn-pause:before {
+        font-family: "Glyphicons Halflings";
+        content: "\e073";
+        padding-right: 5px;
+      }
+      .btn-next:after {
+        font-family: "Glyphicons Halflings";
+        content: "\e075";
+        padding-left: 5px;
+      }
+      .btn-prev:before {
+        font-family: "Glyphicons Halflings";
+        content: "\e071";
+        padding-right: 5px;
+      }
+      .animation-progress-bar{
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          height: 5px;
+          width: 0;
+          background-color: #1E90FF;
+          z-index: 10000;
+      }
+      .leaflet-control-layers {border:none;}
+      #legend {max-width:500px;}
+      .dim {opacity:0.5;}
+      a, a:active, a:focus {
+         outline: none;
+      }
+      .fireIcon {
+      -moz-border-radius: 5px/5px;
+      -webkit-border-radius: 5px 5px;
+      border-radius: 5px/5px;
+      border: solid 3px #f00;
+      background: #f00;
+      width: 5px;
+      height: 5px;
+      } 
+      .tIcon {
+      -moz-border-radius: 5px/5px;
+      -webkit-border-radius: 5px 5px;
+      border-radius: 5px/5px;
+      border: solid 3px #000;
+      background: #000;
+      width: 5px;
+      height: 5px;
+      } 
+      .glyphicon-circle:before {
+          content:"\25cf";
+          font-size: 1.7em;
+          color: hotpink;
+      }
+    </style>
+  </head>
+
+  <body>
+   <div class="navbar navbar-inverse navbar-fixed-top" style='background:DarkSlateGray' role="navigation">
+      <div class="container-fluid">
+            <span class="navbar-header pull-right">
+               <a class="navbar-brand pull-right" style="color:white;height:30px;padding:5px 5px 5px 15px;" href="/" id="about-btn"><strong><styled id='right'></styled></strong> <i class='glyphicon glyphicon-question-sign'></i></a>
+            </span>
+        <div class="navbar-header">
+          <div class="navbar-icon-container">
+          </div>
+          <a class="navbar-brand" style="color:white;height:30px;padding:5px 15px 5px 15px;" href="/fuels/"><strong><styled><span id='left'></span></styled></strong></a>
+        </div>
+     </div>
+    </div>
+
+    <div id="container">
+      <div id="map"></div>
+    </div>
+    <div id="loading">
+      <div class="loading-indicator">
+        <div class="progress progress-striped active">
+          <div class="progress-bar progress-bar-success progress-bar-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <ul class="nav nav-tabs" id="aboutTabs">
+              <li class="active"><a href="#about" data-toggle="tab"><strong><i class="glyphicon glyphicon-question-sign"></i>&nbsp;Help</strong></a></li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><strong><i class="glyphicon glyphicon-info-sign"></i>&nbsp;Documentation <b class="caret"></b></a></strong>
+                <ul class="dropdown-menu">
+                  <li><a href="#tab-one" data-toggle="tab">Section One</a></li>
+                  <li><a href="#tab-two" data-toggle="tab">Section Two</a></li>
+                </ul>
+              </li>
+              <li><a href="#ftab" data-toggle="tab"><strong><i class="glyphicon glyphicon-download"></i>&nbsp;Downloads</a></strong></li>
+              <button class="close" type="button" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </ul>
+            <div class="tab-content" id="aboutTabsContent">
+              <div class="tab-pane fade active in" id="about">
+                <div class="panel-body">
+                  <p>Use the list or map on the <strong><a href='/fuels/2018/'>index page</a></strong> to find a wildfire, then click the name in the popup box in the <strong>top left corner</strong> of the map to open the measures page for that wildfire.</p>
+
+                  <p>Wildfire pages show the wildfire perimeter or point, a buffered perimeter based on the size of the wildfire, and nearby fuel treatments shaded by treatment category:
+                  <ul>
+                    <li>Fire</li>
+                    <li>Mechanical</li>
+                    <li>...</li>
+                  </ul>
+                  Overlays can be added and removed from the map using the layer control in the <strong>top right corner</strong> of the page. Clicking a fuel treatment on the map will show related information in the popup box in the <strong>top left corner</strong> of the page.</p>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="ftab">
+                <div class="panel-body">
+                </div>
+              </div>
+              <div class="tab-pane fade" id="tab-one">
+                <p>Documentation section one</p>
+              </div>
+              <div class="tab-pane fade" id="tab-two">
+                <p>Documentation section two</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.1.15/leaflet-providers.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.4.2/Control.FullScreen.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.62.0/L.Control.Locate.min.js"></script>
+  <script type="text/javascript" src="/fuels/baselayers.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-omnivore/0.3.4/leaflet-omnivore.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.3.5/papaparse.min.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function() {
+          $.ajax('data.js', {dataType: 'script'})
+      });
+      $(document).one("ajaxStop", function () {
+        $("#loading").hide();
+          });
+    </script>
+  </body>    
+</html>
